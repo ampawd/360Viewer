@@ -11,17 +11,45 @@
 		
 	function onresize() {
 		setUpGL();
-		projection = perspective(projection, fov*degToRad, cnv.width/cnv.height, 1, 3000);
+		projection = perspective(projection, fov*degToRad, cnv.width/cnv.height, 1, 1000);
 		renderScene();
 	}
 	
 	function setUpInteractivities() {
 		addEventListener("resize", onresize);
 		
-		//let mouseOrTouch = new Vec2();
+		let touchOrDown = new Vec2();
+		let touchOrMove = new Vec2();
+		let alphaX = 0, alphaY = 0;
 		
-		//document.addEventListener("mousedown", function() {}, false);
+		function onStart(e) {
+			touchOrDown.set(e.clientX, e.clientY);
+			document.onmousemove = onMove;
+		}
 		
+		function onMove(e) {
+			touchOrMove.set(e.clientX, e.clientY);		
+			let diff = touchOrMove.sub(touchOrDown); 
+			alphaX += diff.x;
+			alphaY += diff.y;
+			
+			console.log(alphaX, alphaY)
+			
+			Rx = rotateX(Rx, -alphaY * degToRad * 0.1);
+			Ry = rotateY(Ry, alphaX * degToRad * 0.1);
+			
+			touchOrDown.set(touchOrMove.x, touchOrMove.y);
+            renderScene();
+        }
+		
+		function onEnd(e) {
+			document.onmousemove = null;
+        }
+		
+		
+		document.onmousedown = onStart;
+		document.onmouseup = onEnd;
+		window.onmouseup = onEnd;
     }
 	
 	function setUpGL() {
@@ -115,7 +143,7 @@
 	function renderScene() {
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);			
 		
-		Ry = rotateY(Ry, alpha*degToRad * 0.2);		
+		//Ry = rotateY(Ry, alpha*degToRad * 0.2);		
 		model = T.mult( S.mult( Rz.mult(Ry).mult(Rx) ) );
 		mvp = projection.mult( model );								
 		
@@ -127,8 +155,7 @@
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, sphereView.indexBuffer);
 		gl.drawElements(gl.TRIANGLE_STRIP, sphereView.indices.length, gl.UNSIGNED_SHORT, 0);	
 	
-		alpha++;
-		
+		//alpha++;		
 		//if (Math.abs(alpha) > 360) {
 		//	alpha = 0;
 		//	
@@ -179,7 +206,7 @@
 		setUpGL();
 		onresize();
 		setUpInteractivities();
-		mainLoop();
+		//mainLoop();
 	}
 
 	
