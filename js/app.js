@@ -16,7 +16,12 @@
 	}
 	
 	function setUpInteractivities() {
-		addEventListener("resize", onresize);    
+		addEventListener("resize", onresize);
+		
+		//let mouseOrTouch = new Vec2();
+		
+		//document.addEventListener("mousedown", function() {}, false);
+		
     }
 	
 	function setUpGL() {
@@ -25,14 +30,19 @@
 		gl.viewport(0, 0, cnv.width, cnv.height);
 		gl.clearColor(1.0, 1.0, 1.0, 1.0);
 		gl.enable(gl.DEPTH_TEST);
-	}	
+	}
 	
-	function loadSphere(r, center, lats, longs) {
+	function isPowerOf2(value) {
+		return (value & (value - 1)) == 0;
+    }
+	
+	function load360View(r, center, lats, longs, textureImage) {
 		let	vertexBuffer = gl.createBuffer(),
-			colorBuffer = gl.createBuffer(),
+			uvBuffer = gl.createBuffer(),
 			indexBuffer = gl.createBuffer(),
+			texture = gl.createTexture(),
 			vertices = [],
-			verticesColors = [],
+			texCoords = [],
 			indices = [];	
 			
 			let theta, phi, x, y, z;
@@ -45,14 +55,10 @@
 					z = Math.sin(theta) * Math.sin(phi);					
 					vertices.push(r * x + center.x);
 					vertices.push(r * y + center.y);
-					vertices.push(r * z + center.z);					
+					vertices.push(r * z + center.z);
+					texCoords.push( (j / longs) );
+					texCoords.push( (i / lats) );
 				}				
-			}
-			let l = vertices.length / 3;
-			for (let i = 0; i < l; i++) {
-				for (let k = 0; k < 4; k++) {
-					verticesColors.push( k == 3 ? 1 : rand() );					
-				}
 			}
 			for (let i = 0; i < lats; i++) {				
 				for (let j = 0; j < longs; j++) {
@@ -65,7 +71,7 @@
 
 					indices.push(second);
 					indices.push(second + 1);
-					indices.push(first + 1);
+					indices.push(first + 1);					
 				}
 			}
 			
@@ -73,47 +79,63 @@
 			gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
 			
 			gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+			gl.enableVertexAttribArray(vPositionLoc);
+			gl.vertexAttribPointer(vPositionLoc, 3, gl.FLOAT, false, 0, 0);					
 			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
 			
-			gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);		   		   
-			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(verticesColors),	gl.STATIC_DRAW);
+			gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
+			gl.enableVertexAttribArray(vtexCoordLoc);
+			gl.vertexAttribPointer(vtexCoordLoc, 2, gl.FLOAT, false, 0, 0);			
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(texCoords),	gl.STATIC_DRAW);
+				
+			
+			gl.bindTexture(gl.TEXTURE_2D, texture);
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, textureImage);
+			
+			
+			if (isPowerOf2(textureImage.width) && isPowerOf2(textureImage.height)) {
+				gl.generateMipmap(gl.TEXTURE_2D);
+			} else {
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+			}
+			
 
 		return {
 			vertexBuffer: vertexBuffer,
 			indexBuffer: indexBuffer,
-			colorBuffer: colorBuffer,
-			indices: indices
+			uvBuffer: uvBuffer,
+			indices: indices,
+			texture : texture
 		}
 	}
 	
 	function renderScene() {
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);			
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, sphere.vertexBuffer);																
-		gl.vertexAttribPointer(vPositionLoc, 3, gl.FLOAT, false, 0, 0);	
-
-		gl.bindBuffer(gl.ARRAY_BUFFER, sphere.colorBuffer);							
-		gl.vertexAttribPointer(pColorLoc, 4, gl.FLOAT, false, 0, 0);	
 		
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, sphere.indexBuffer);
-		
-		Ry = rotateY(Ry, alpha*degToRad / 2);
-		
+		Ry = rotateY(Ry, alpha*degToRad * 0.2);		
 		model = T.mult( S.mult( Rz.mult(Ry).mult(Rx) ) );
 		mvp = projection.mult( model );								
 		
+		gl.activeTexture(gl.TEXTURE0);
+		gl.bindTexture(gl.TEXTURE_2D, sphereView.texture);
+		gl.uniform1i(gl.getUniformLocation(shaderProgram, "texture"), 0);
+		
 		gl.uniformMatrix4fv(mvpLoc, false, mvp.elements);
-		gl.drawElements(gl.TRIANGLE_STRIP, sphere.indices.length, gl.UNSIGNED_SHORT, 0);	
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, sphereView.indexBuffer);
+		gl.drawElements(gl.TRIANGLE_STRIP, sphereView.indices.length, gl.UNSIGNED_SHORT, 0);	
 	
 		alpha++;
 		
-		if (Math.abs(alpha) > 360) {
-			alpha = 0;
-			
-			if (timerID) {
-				cancelAnimationFrame(timerID);				
-			}
-		}			
+		//if (Math.abs(alpha) > 360) {
+		//	alpha = 0;
+		//	
+		//	if (timerID) {
+		//		cancelAnimationFrame(timerID);				
+		//	}
+		//}			
 	}
 	
 	function mainLoop() {
@@ -128,7 +150,7 @@
 	gl.useProgram(shaderProgram);
 	
 	let vPositionLoc = gl.getAttribLocation(shaderProgram, "vPosition"),
-		pColorLoc = gl.getAttribLocation(shaderProgram, "pColor"),
+		vtexCoordLoc = gl.getAttribLocation(shaderProgram, "vtexCoord"),
 		mvpLoc	= gl.getUniformLocation(shaderProgram, "mvp"),
 	
 		Rx = rotateX(new Mat4(), 0),
@@ -140,20 +162,25 @@
 		
 		fov = 55,
 		
-		projection = perspective(new Mat4(), fov*degToRad, cnv.width/cnv.height, 1, 3000),		
+		projection = perspective(new Mat4(), fov*degToRad, cnv.width/cnv.height, 1, 1000),		
 		mvp,
 		model,
 		alpha = 0,
 		timerID  = 0,
-		sphere = loadSphere(250, new Vec3(0, 0, 0), 100, 100);
+		sphereView;
+		
+		
+	let image = new Image();
+	image.src = "media/textures/img2.jpg";
 	
-	gl.enableVertexAttribArray(vPositionLoc);
-	gl.enableVertexAttribArray(pColorLoc);
+	image.onload = function() {
+		sphereView = load360View(5, new Vec3(0, 0, 0), 50, 50, image);
+			
+		setUpGL();
+		onresize();
+		setUpInteractivities();
+		mainLoop();
+	}
 
-
-	setUpGL();
-	onresize();
-	setUpInteractivities();
-	mainLoop();	
 	
 })();

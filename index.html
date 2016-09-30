@@ -9,29 +9,27 @@
 		<canvas id="canvas3d"></canvas>
 		<script type="x-shader/x-vertex" id="vshader">
 			precision highp float;
-			const float PI = 3.141592;
-
-			varying vec4 v_color;
 			
-			attribute vec4 pColor;			
 			attribute vec4 vPosition;
+			attribute vec2 vtexCoord;
+			varying vec2 texCoord;
+			
 			uniform mat4 mvp;			
 			
 			void main() {			  
 				gl_Position = mvp * vPosition;
-				v_color = pColor;
+				texCoord = vtexCoord;
 			}
 			
 		</script>
 		
 		<script type="x-shader/x-fragment" id="fshader">
 			precision highp float;
-
-			
-			varying vec4 v_color;
+			varying vec2 texCoord;
+			uniform sampler2D texture;
 			
 			void main() {
-				gl_FragColor = v_color;
+				gl_FragColor = texture2D(texture, texCoord);
 			}
 		</script>
 		
