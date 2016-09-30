@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>| 360Viewer</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<link rel="stylesheet" type="text/css" href="media/css/styles.css" />
+	</head>
+	<body>
+		<canvas id="canvas3d"></canvas>
+		<script type="x-shader/x-vertex" id="vshader">
+			precision highp float;
+			const float PI = 3.141592;
+
+			varying vec4 v_color;
+			
+			attribute vec4 pColor;			
+			attribute vec4 vPosition;
+			uniform mat4 mvp;			
+			
+			void main() {			  
+				gl_Position = mvp * vPosition;
+				v_color = pColor;
+			}
+			
+		</script>
+		
+		<script type="x-shader/x-fragment" id="fshader">
+			precision highp float;
+
+			
+			varying vec4 v_color;
+			
+			void main() {
+				gl_FragColor = v_color;
+			}
+		</script>
+		
+		
+		<script	type="text/javascript" src="js/requestAnimationFrame-fix.js"></script>
+		<script type="text/javascript" src="js/math.js"></script>
+		<script type="text/javascript" src="js/shader-utils.js"></script>
+		<script type="text/javascript" src="js/app.js"></script>
+	</body>
+</html>
