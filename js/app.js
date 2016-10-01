@@ -20,37 +20,55 @@
 		
 		let touchOrDown = new Vec2();
 		let touchOrMove = new Vec2();
-		let alphaX = 0, alphaY = 0;
+		let phi = 0, theta = 0,
+				phim = 0, thetam = 0;
 		
 		function onStart(e) {
 			touchOrDown.set(e.clientX, e.clientY);
+			phim = phi; 
+			thetam = theta;
 			document.onmousemove = onMove;
 		}
 		
 		function onMove(e) {
-			touchOrMove.set(e.clientX, e.clientY);		
-			let diff = touchOrMove.sub(touchOrDown); 
-			alphaX += diff.x;
-			alphaY += diff.y;
+			touchOrMove.set(e.clientX, e.clientY);	
 			
-			console.log(alphaX, alphaY)
+			let diff = touchOrMove.sub(touchOrDown);
 			
-			Rx = rotateX(Rx, -alphaY * degToRad * 0.1);
-			Ry = rotateY(Ry, alphaX * degToRad * 0.1);
+			theta += diff.x;
+			phi += diff.y;
+			
+			Ry = rotateY(Ry, phi * degToRad * 0.5);
+			
+			// theta = -(touchOrMove.x - touchOrDown.x) * 0.002 + thetam;
+			// phi = (touchOrMove.y - touchOrDown.y) * 0.002 + phim;
+			
+			// phi = Math.min( 180, Math.max( 0, phi ) );
+				
+		
+			// cameraPosition.x =   Math.sin(theta) * Math.cos(phi);
+			// cameraPosition.y =   Math.sin(phi);
+			// cameraPosition.z =   Math.cos(theta) * Math.cos(phi);	
+			
+			// target.set(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z);
+			
+			// view = lookAt(view, cameraPosition, target, up);
+			
+			
+			renderScene();
 			
 			touchOrDown.set(touchOrMove.x, touchOrMove.y);
-            renderScene();
-        }
+		}
 		
 		function onEnd(e) {
 			document.onmousemove = null;
-        }
+		}
 		
 		
 		document.onmousedown = onStart;
 		document.onmouseup = onEnd;
 		window.onmouseup = onEnd;
-    }
+  }
 	
 	function setUpGL() {
 		cnv.width = cnv.offsetWidth;
@@ -60,8 +78,8 @@
 		gl.enable(gl.DEPTH_TEST);
 	}
 	
-	function isPowerOf2(value) {
-		return (value & (value - 1)) == 0;
+	function isPowerOf2(x) {
+		return (x & (x - 1)) == 0;
     }
 	
 	function load360View(r, center, lats, longs, textureImage) {
@@ -143,9 +161,9 @@
 	function renderScene() {
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);			
 		
-		//Ry = rotateY(Ry, alpha*degToRad * 0.2);		
+		//Ry = rotateY(Ry, alpha*degToRad * 0.1);		
 		model = T.mult( S.mult( Rz.mult(Ry).mult(Rx) ) );
-		mvp = projection.mult( model );								
+		mvp = projection.mult( view.mult(model) );								
 		
 		gl.activeTexture(gl.TEXTURE0);
 		gl.bindTexture(gl.TEXTURE_2D, sphereView.texture);
@@ -167,8 +185,8 @@
 	
 	function mainLoop() {
 		timerID = requestAnimationFrame(mainLoop);	
-        renderScene();
-    }
+		renderScene();
+	}
 	
 
 	vshader = getShader("vshader", gl);
@@ -179,6 +197,10 @@
 	let vPositionLoc = gl.getAttribLocation(shaderProgram, "vPosition"),
 		vtexCoordLoc = gl.getAttribLocation(shaderProgram, "vtexCoord"),
 		mvpLoc	= gl.getUniformLocation(shaderProgram, "mvp"),
+		
+		cameraPosition = new Vec3(0, 0, 0),		
+		target = new Vec3(0, 0, -1),
+		up = new Vec3(0, 1, 0),
 	
 		Rx = rotateX(new Mat4(), 0),
 		Ry = rotateY(new Mat4(), 0),
@@ -187,9 +209,10 @@
 		T = translate(new Mat4(), new Vec3(0, 0, 0)),	
 		S = scale(new Mat4(), new Vec3(1, 1, 1)),
 		
-		fov = 55,
+		fov = 90,
 		
 		projection = perspective(new Mat4(), fov*degToRad, cnv.width/cnv.height, 1, 1000),		
+		view = lookAt(new Mat4(), cameraPosition, target, up),
 		mvp,
 		model,
 		alpha = 0,
@@ -198,7 +221,7 @@
 		
 		
 	let image = new Image();
-	image.src = "media/textures/img2.jpg";
+	image.src = "media/textures/img1.jpg";
 	
 	image.onload = function() {
 		sphereView = load360View(5, new Vec3(0, 0, 0), 50, 50, image);

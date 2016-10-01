@@ -1,15 +1,18 @@
 'use strict';
 
 /**
- *  Vec2 class
- *  2 dimensional affine vector
+ * @author: Aram Gevorgyan
+ * @creation date: December 2015
  */
- 
- 
+
  
 const degToRad = Math.PI/180.0;	
 const radToDeg = 180.0/Math.PI;	
- 
+
+ /**
+ *  Vec2 class
+ *  2 dimensional affine vector
+ */ 
 function Vec2(x, y) {
     this.x = x;
     this.y = y;
@@ -240,7 +243,7 @@ Mat2.prototype.getInverse = function() {
         d = this.determinant(),
         a = this.elements;
         
-        if ( d == 0 ) {
+        if ( d === 0 ) {
             console.log("determinant is 0");
             return false;
         }      
@@ -542,7 +545,7 @@ Mat4.prototype.getInverse = function() {
     }
         
     det = 1 / det;
-    for (i = 0; i < 16; i++) {
+    for (let i = 0; i < 16; i++) {
         invOut[i] *= det;
     }
     return new Mat4(invOut);
@@ -565,34 +568,6 @@ Mat4.prototype.print = function() {
         console.log('\n');
     }
 };
-
-
-//function translationMat(tx, ty) {
-//    return new Mat3([
-//        1.0, 0.0, 0.0,
-//        0.0, 1.0, 0.0,
-//        tx,   ty,   0.0
-//    ]);
-//}
-//
-//function rotationMat2D(alpha) {
-//    var c = Math.cos(alpha),
-//        s = Math.sin(alpha);
-//    return new Mat3([
-//        c,   s,   0.0, 
-//        -s,  c,   0.0,
-//        0.0, 0.0, 1.0
-//    ]);    
-//}
-//
-//function scaleMat(sx, sy) {
-//    return new Mat3([
-//        sx,  0.0, 0.0,
-//        0.0, sy,  0.0,
-//        0.0, 0.0, 1.0
-//    ]);
-//}
-
 
 function translate(mat4, v) {
     mat4.identity();
@@ -644,6 +619,29 @@ function scale(mat4, v) {
 }
 
 
+
+function lookAt(mat4, cameraPosition, target, up) {
+  mat4.identity();
+	let zAxis = cameraPosition.sub(target).normalize();			
+  let xAxis = up.cross(zAxis);
+  let yAxis = zAxis.cross(xAxis);
+
+  mat4.elements[0] = xAxis.x; mat4.elements[1] = xAxis.y; mat4.elements[2] = xAxis.z; mat4.elements[3] = 0;
+	
+	mat4.elements[4] = yAxis.x; mat4.elements[5] = yAxis.y; mat4.elements[6] = yAxis.z; mat4.elements[7] = 0;
+	mat4.elements[8] = zAxis.x; mat4.elements[9] = zAxis.y; mat4.elements[10] = zAxis.z; mat4.elements[11] = 0;	
+	
+	mat4.elements[12] = cameraPosition.x; 
+	mat4.elements[13] = cameraPosition.y; 
+	mat4.elements[14] = cameraPosition.z; 
+	mat4.elements[15] = 1;
+	
+	//mat4.transpose();
+	
+	return mat4.getInverse();
+}
+
+
 //  fov angle must be in radians
 function perspective(mat4, fov, aspect, near, far) {
     var f = Math.tan(Math.PI * 0.5 - 0.5 * fov);
@@ -654,14 +652,6 @@ function perspective(mat4, fov, aspect, near, far) {
 
     mat4.elements[8] = 0;           mat4.elements[9]  = 0; mat4.elements[10] = (near + far) * rangeInv;     mat4.elements[11] = -1;
     mat4.elements[12] = 0;          mat4.elements[13] = 0; mat4.elements[14] = near * far * rangeInv * 2;   mat4.elements[15] = 0;
-    
- 
-    //mat4 = new Mat4([
-    //  f / aspect, 0, 0, 0,
-    //  0, f, 0, 0,
-    //  0, 0, (near + far) * rangeInv, -1,
-    //  0, 0, near * far * rangeInv * 2, 0
-    //]);
     
     return mat4;
 }
