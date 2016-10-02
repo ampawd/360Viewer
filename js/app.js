@@ -7,7 +7,8 @@
 		vshader,
 		fshader,
 		shaderProgram,
-		rand = Math.random;
+		rand = Math.random,
+		userInteracting;
 		
 	function onresize() {
 		setUpGL();
@@ -20,38 +21,34 @@
 		
 		let touchOrDown = new Vec2();
 		let touchOrMove = new Vec2();
-		let phi = 0, theta = 0,
-				phim = 0, thetam = 0;
+		let phi = 0;
 		
 		function onStart(e) {
+			userInteracting = true;
 			touchOrDown.set(e.clientX, e.clientY);
-			phim = phi; 
-			thetam = theta;
 			document.onmousemove = onMove;
 		}
 		
 		function onMove(e) {
-			touchOrMove.set(e.clientX, e.clientY);	
+			touchOrMove.set(e.clientX, e.clientY);				
+			let diff = touchOrMove.sub(touchOrDown);		
 			
-			let diff = touchOrMove.sub(touchOrDown);
+			theta += diff.x * degToRad * 0.2;
+			phi += diff.y  * degToRad * 0.2;		
+			phi = Math.max(-Math.PI * 0.5, Math.min(Math.PI * 0.5, phi)); 	
 			
-			theta += diff.x;
-			phi += diff.y;
+			Rx = rotateX(Rx, -phi);
+			Ry = rotateY(Ry, -theta);
 			
-			Ry = rotateY(Ry, phi * degToRad * 0.5);
 			
 			// theta = -(touchOrMove.x - touchOrDown.x) * 0.002 + thetam;
-			// phi = (touchOrMove.y - touchOrDown.y) * 0.002 + phim;
-			
-			// phi = Math.min( 180, Math.max( 0, phi ) );
-				
+			// phi = (touchOrMove.y - touchOrDown.y) * 0.002 + phim;			
+			// phi = Math.min( 180, Math.max( 0, phi ) );				
 		
 			// cameraPosition.x =   Math.sin(theta) * Math.cos(phi);
 			// cameraPosition.y =   Math.sin(phi);
-			// cameraPosition.z =   Math.cos(theta) * Math.cos(phi);	
-			
-			// target.set(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z);
-			
+			// cameraPosition.z =   Math.cos(theta) * Math.cos(phi);				
+			// target.set(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z);			
 			// view = lookAt(view, cameraPosition, target, up);
 			
 			
@@ -61,6 +58,7 @@
 		}
 		
 		function onEnd(e) {
+			userInteracting = false;
 			document.onmousemove = null;
 		}
 		
@@ -71,6 +69,7 @@
   }
 	
 	function setUpGL() {
+		userInteracting = false;
 		cnv.width = cnv.offsetWidth;
 		cnv.height = cnv.offsetHeight;
 		gl.viewport(0, 0, cnv.width, cnv.height);
@@ -161,8 +160,11 @@
 	function renderScene() {
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);			
 		
-		//Ry = rotateY(Ry, alpha*degToRad * 0.1);		
-		model = T.mult( S.mult( Rz.mult(Ry).mult(Rx) ) );
+		if (!userInteracting) {
+			Ry = rotateY(Ry, -theta);
+		}
+		
+		model = T.mult( S.mult( Rx.mult( Ry.mult(Rz) ) ) );
 		mvp = projection.mult( view.mult(model) );								
 		
 		gl.activeTexture(gl.TEXTURE0);
@@ -173,14 +175,17 @@
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, sphereView.indexBuffer);
 		gl.drawElements(gl.TRIANGLE_STRIP, sphereView.indices.length, gl.UNSIGNED_SHORT, 0);	
 	
-		//alpha++;		
-		//if (Math.abs(alpha) > 360) {
-		//	alpha = 0;
-		//	
-		//	if (timerID) {
-		//		cancelAnimationFrame(timerID);				
-		//	}
-		//}			
+		theta += 0.02 * 0.075;
+
+		//console.log(globalAlphaY)
+		
+		// if (Math.abs(globalAlphaY) > 360) {
+			// globalAlphaY = 0;
+			
+			// if (timerID) {
+				// cancelAnimationFrame(timerID);				
+			// }
+		// }			
 	}
 	
 	function mainLoop() {
@@ -215,13 +220,13 @@
 		view = lookAt(new Mat4(), cameraPosition, target, up),
 		mvp,
 		model,
-		alpha = 0,
+		theta = 0,
 		timerID  = 0,
 		sphereView;
 		
 		
 	let image = new Image();
-	image.src = "media/textures/img1.jpg";
+	image.src = "media/textures/img3.jpg";
 	
 	image.onload = function() {
 		sphereView = load360View(5, new Vec3(0, 0, 0), 50, 50, image);
@@ -229,7 +234,7 @@
 		setUpGL();
 		onresize();
 		setUpInteractivities();
-		//mainLoop();
+		mainLoop();
 	}
 
 	

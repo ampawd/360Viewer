@@ -631,9 +631,9 @@ function lookAt(mat4, cameraPosition, target, up) {
 	mat4.elements[4] = yAxis.x; mat4.elements[5] = yAxis.y; mat4.elements[6] = yAxis.z; mat4.elements[7] = 0;
 	mat4.elements[8] = zAxis.x; mat4.elements[9] = zAxis.y; mat4.elements[10] = zAxis.z; mat4.elements[11] = 0;	
 	
-	mat4.elements[12] = cameraPosition.x; 
-	mat4.elements[13] = cameraPosition.y; 
-	mat4.elements[14] = cameraPosition.z; 
+	mat4.elements[12] = -cameraPosition.x; 
+	mat4.elements[13] = -cameraPosition.y; 
+	mat4.elements[14] = -cameraPosition.z; 
 	mat4.elements[15] = 1;
 	
 	//mat4.transpose();
