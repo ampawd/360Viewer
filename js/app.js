@@ -96,6 +96,18 @@
 			cnv.removeEventListener("touchmove", onMove, false);
 		}		
 		
+		
+		cnv.addEventListener("mousewheel", function(e) {			
+			if (e.deltaY > 0) {
+				fov -= 2;
+			} else {				
+				fov += 2;				
+			}
+			
+			if (fov >= 120) fov = 120;
+			if (fov <= 50) fov = 50;			
+		});
+		
 		cnv.addEventListener("mousedown", onStart, false);
 		cnv.addEventListener("touchstart", onStart, false);
 		cnv.addEventListener("mouseup", onEnd, false);
@@ -199,6 +211,7 @@
 		}
 		
 		model = T.mult( S.mult( Rx.mult( Ry.mult(Rz) ) ) );
+		projection = perspective(projection, fov*degToRad, cnv.width/cnv.height, 1, 1000)
 		mvp = projection.mult( view.mult(model) );								
 		
 		gl.activeTexture(gl.TEXTURE0);
