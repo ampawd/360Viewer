@@ -17,29 +17,66 @@
 	}
 	
 	function setUpInteractivities() {
-		addEventListener("resize", onresize);
+		cnv.removeEventListener("mousemove", onMove);
+		cnv.removeEventListener("mousedown", onStart);
+		cnv.removeEventListener("mouseup", onEnd);
+		cnv.removeEventListener("touchstart", onStart);
+		cnv.removeEventListener("touchmove", onMove);
+		cnv.removeEventListener("touchend", onEnd);
+		
+		window.addEventListener("resize", onresize);
 		
 		let touchOrDown = new Vec2();
 		let touchOrMove = new Vec2();
 		let phi = 0;
+		let ongoingTouches = [];
 		
 		function onStart(e) {
+			e.preventDefault();
 			userInteracting = true;
-			touchOrDown.set(e.clientX, e.clientY);
-			document.onmousemove = onMove;
+			
+			let touches = e.touches || [];			
+			if (touches.length && touches.length == 1) {
+				touchOrDown.set(touches[0].pageX, touches[0].pageY);			
+				cnv.addEventListener("touchmove", onMove, false);
+			} else {
+				touchOrDown.set(e.clientX, e.clientY);	
+				cnv.addEventListener("mousemove", onMove, false);
+			
+			}
 		}
 		
 		function onMove(e) {
-			touchOrMove.set(e.clientX, e.clientY);				
-			let diff = touchOrMove.sub(touchOrDown);		
-			
-			theta += diff.x * degToRad * 0.2;
-			phi += diff.y  * degToRad * 0.2;		
-			phi = Math.max(-Math.PI * 0.5, Math.min(Math.PI * 0.5, phi)); 	
-			
-			Rx = rotateX(Rx, -phi);
-			Ry = rotateY(Ry, -theta);
-			
+			e.preventDefault();
+			let diff;
+			let touches = e.touches || [];			
+			if (touches.length) {
+				touches.forEach(function(touch) {					
+				
+					touchOrMove.set(touche.pageX, touche.pageY);	
+					diff = touchOrMove.sub(touchOrDown);					
+					theta += diff.x * degToRad * 0.2;
+					phi += diff.y  * degToRad * 0.2;		
+					phi = Math.max(-Math.PI * 0.5, Math.min(Math.PI * 0.5, phi));
+					Rx = rotateX(Rx, -phi);
+					Ry = rotateY(Ry, -theta);
+					renderScene();			
+					touchOrDown.set(touchOrMove.x, touchOrMove.y);
+					
+				});
+				
+			} else {
+				touchOrMove.set(e.clientX, e.clientY);				
+				diff = touchOrMove.sub(touchOrDown);		
+				
+				theta += diff.x * degToRad * 0.2;
+				phi += diff.y  * degToRad * 0.2;		
+				phi = Math.max(-Math.PI * 0.5, Math.min(Math.PI * 0.5, phi));
+				Rx = rotateX(Rx, -phi);
+				Ry = rotateY(Ry, -theta);				
+				renderScene();			
+				touchOrDown.set(touchOrMove.x, touchOrMove.y);
+			}			
 			
 			// theta = -(touchOrMove.x - touchOrDown.x) * 0.002 + thetam;
 			// phi = (touchOrMove.y - touchOrDown.y) * 0.002 + phim;			
@@ -49,23 +86,20 @@
 			// cameraPosition.y =   Math.sin(phi);
 			// cameraPosition.z =   Math.cos(theta) * Math.cos(phi);				
 			// target.set(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z);			
-			// view = lookAt(view, cameraPosition, target, up);
-			
-			
-			renderScene();
-			
-			touchOrDown.set(touchOrMove.x, touchOrMove.y);
+			// view = lookAt(view, cameraPosition, target, up);				
 		}
 		
 		function onEnd(e) {
+			e.preventDefault();
 			userInteracting = false;
-			document.onmousemove = null;
-		}
+			cnv.removeEventListener("mousemove", onMove, false);
+			cnv.removeEventListener("touchmove", onMove, false);
+		}		
 		
-		
-		document.onmousedown = onStart;
-		document.onmouseup = onEnd;
-		window.onmouseup = onEnd;
+		cnv.addEventListener("mousedown", onStart, false);
+		cnv.addEventListener("touchstart", onStart, false);
+		cnv.addEventListener("mouseup", onEnd, false);
+		cnv.addEventListener("touchend", onEnd, false);
   }
 	
 	function setUpGL() {
