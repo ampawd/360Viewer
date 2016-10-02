@@ -85,8 +85,8 @@
 			// cameraPosition.x =   Math.sin(theta) * Math.cos(phi);
 			// cameraPosition.y =   Math.sin(phi);
 			// cameraPosition.z =   Math.cos(theta) * Math.cos(phi);				
-			// target.set(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z);			
 			// view = lookAt(view, cameraPosition, target, up);				
+			// target.set(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z);			
 		}
 		
 		function onEnd(e) {
@@ -260,7 +260,7 @@
 		
 		
 	let image = new Image();
-	image.src = "media/textures/img1.jpg";
+	image.src = "media/textures/img3.jpg";
 	
 	image.onload = function() {
 		sphereView = load360View(5, new Vec3(0, 0, 0), 50, 50, image);
