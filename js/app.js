@@ -96,17 +96,21 @@
 			cnv.removeEventListener("touchmove", onMove, false);
 		}		
 		
-		
-		cnv.addEventListener("mousewheel", function(e) {			
-			if (e.deltaY > 0) {
+		function onMouseWheel(e) {			
+			let deltaY = e.detail || e.deltaY;
+			
+			if (deltaY > 0) {
 				fov -= 2;
 			} else {				
 				fov += 2;				
 			}
 			
 			if (fov >= 120) fov = 120;
-			if (fov <= 50) fov = 50;			
-		});
+			if (fov <= 55) fov = 55;			
+		}
+		
+		cnv.addEventListener("DOMMouseScroll", onMouseWheel);
+		cnv.addEventListener("mousewheel", onMouseWheel);
 		
 		cnv.addEventListener("mousedown", onStart, false);
 		cnv.addEventListener("touchstart", onStart, false);
@@ -273,7 +277,7 @@
 		
 		
 	let image = new Image();
-	image.src = "media/textures/img3.jpg";
+	image.src = "media/textures/img2.jpg";
 	
 	image.onload = function() {
 		sphereView = load360View(5, new Vec3(0, 0, 0), 50, 50, image);
