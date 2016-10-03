@@ -1,7 +1,6 @@
 'use strict';
 
 ;(function() {
-
 	let cnv = document.getElementById("canvas3d"),
 		gl = cnv.getContext("experimental-webgl"),
 		vshader,
@@ -16,16 +15,7 @@
 		renderScene();
 	}
 	
-	function setUpInteractivities() {
-		cnv.removeEventListener("mousemove", onMove);
-		cnv.removeEventListener("mousedown", onStart);
-		cnv.removeEventListener("mouseup", onEnd);
-		cnv.removeEventListener("touchstart", onStart);
-		cnv.removeEventListener("touchmove", onMove);
-		cnv.removeEventListener("touchend", onEnd);
-		
-		window.addEventListener("resize", onresize);
-		
+	function setUpInteractivities() {	
 		let touchOrDown = new Vec2();
 		let touchOrMove = new Vec2();
 		let phi = 0;
@@ -41,8 +31,7 @@
 				cnv.addEventListener("touchmove", onMove, false);
 			} else {
 				touchOrDown.set(e.clientX, e.clientY);	
-				cnv.addEventListener("mousemove", onMove, false);
-			
+				cnv.addEventListener("mousemove", onMove, false);			
 			}
 		}
 		
@@ -51,8 +40,7 @@
 			let diff;
 			let touches = e.touches || [];			
 			if (touches.length) {
-				touches.forEach(function(touch) {					
-				
+				touches.forEach(function(touch) {
 					touchOrMove.set(touche.pageX, touche.pageY);	
 					diff = touchOrMove.sub(touchOrDown);					
 					theta += diff.x * degToRad * 0.2;
@@ -62,7 +50,6 @@
 					Ry = rotateY(Ry, -theta);
 					renderScene();			
 					touchOrDown.set(touchOrMove.x, touchOrMove.y);
-					
 				});
 				
 			} else {
@@ -76,17 +63,7 @@
 				Ry = rotateY(Ry, -theta);				
 				renderScene();			
 				touchOrDown.set(touchOrMove.x, touchOrMove.y);
-			}			
-			
-			// theta = -(touchOrMove.x - touchOrDown.x) * 0.002 + thetam;
-			// phi = (touchOrMove.y - touchOrDown.y) * 0.002 + phim;			
-			// phi = Math.min( 180, Math.max( 0, phi ) );				
-		
-			// cameraPosition.x =   Math.sin(theta) * Math.cos(phi);
-			// cameraPosition.y =   Math.sin(phi);
-			// cameraPosition.z =   Math.cos(theta) * Math.cos(phi);				
-			// view = lookAt(view, cameraPosition, target, up);				
-			// target.set(-cameraPosition.x, -cameraPosition.y, -cameraPosition.z);			
+			}		
 		}
 		
 		function onEnd(e) {
@@ -97,26 +74,34 @@
 		}		
 		
 		function onMouseWheel(e) {			
-			let deltaY = e.detail || e.deltaY;
-			
+			let deltaY = e.detail || e.deltaY;			
 			if (deltaY > 0) {
 				fov -= 2;
 			} else {				
 				fov += 2;				
-			}
-			
+			}			
 			if (fov >= 120) fov = 120;
 			if (fov <= 55) fov = 55;			
 		}
 		
+		window.removeEventListener("resize", onresize);
+		cnv.removeEventListener("DOMMouseScroll", onMouseWheel);
+		cnv.removeEventListener("mousewheel", onMouseWheel);
+		cnv.removeEventListener("mousemove", onMove);
+		cnv.removeEventListener("mousedown", onStart);
+		cnv.removeEventListener("mouseup", onEnd);
+		cnv.removeEventListener("touchstart", onStart);
+		cnv.removeEventListener("touchmove", onMove);
+		cnv.removeEventListener("touchend", onEnd);
+		
+		window.addEventListener("resize", onresize);
 		cnv.addEventListener("DOMMouseScroll", onMouseWheel);
 		cnv.addEventListener("mousewheel", onMouseWheel);
-		
 		cnv.addEventListener("mousedown", onStart, false);
 		cnv.addEventListener("touchstart", onStart, false);
 		cnv.addEventListener("mouseup", onEnd, false);
 		cnv.addEventListener("touchend", onEnd, false);
-  }
+	}
 	
 	function setUpGL() {
 		userInteracting = false;
@@ -195,8 +180,7 @@
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-			}
-			
+			}			
 
 		return {
 			vertexBuffer: vertexBuffer,
@@ -226,24 +210,13 @@
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, sphereView.indexBuffer);
 		gl.drawElements(gl.TRIANGLE_STRIP, sphereView.indices.length, gl.UNSIGNED_SHORT, 0);	
 	
-		theta += 0.02 * 0.075;
-
-		//console.log(globalAlphaY)
-		
-		// if (Math.abs(globalAlphaY) > 360) {
-			// globalAlphaY = 0;
-			
-			// if (timerID) {
-				// cancelAnimationFrame(timerID);				
-			// }
-		// }			
+		theta += 0.02 * 0.075;		
 	}
 	
 	function mainLoop() {
 		timerID = requestAnimationFrame(mainLoop);	
 		renderScene();
-	}
-	
+	}	
 
 	vshader = getShader("vshader", gl);
 	fshader = getShader("fshader", gl);
@@ -277,16 +250,13 @@
 		
 		
 	let image = new Image();
-	image.src = "media/textures/img2.jpg";
-	
+	image.src = "media/textures/img2.jpg";	
 	image.onload = function() {
-		sphereView = load360View(5, new Vec3(0, 0, 0), 50, 50, image);
-			
+		sphereView = load360View(5, new Vec3(0, 0, 0), 50, 50, image);			
 		setUpGL();
 		onresize();
 		setUpInteractivities();
 		mainLoop();
 	}
-
 	
 })();
