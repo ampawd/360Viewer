@@ -1,5 +1,10 @@
 'use strict';
 
+/**
+ * @author: Aram Gevorgyan
+ * @creation date: September 2016
+ */
+ 
 ;(function() {
 
 	let cnv = document.getElementById("canvas3d"),
