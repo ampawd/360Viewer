@@ -255,7 +255,7 @@
 		
 		
 	let image = new Image();
-	image.src = "media/textures/img2.jpg";	
+	image.src = "media/textures/img3.jpg";	
 	image.onload = function() {
 		sphereView = load360View(5, new Vec3(0, 0, 0), 50, 50, image);			
 		setUpGL();
