@@ -1,0 +1,19 @@
+{
+  "name": "360viewer",
+  "version": "1.0.0",
+  "description": "panorama view with raw webgl",
+  "main": "index.js",
+  "scripts": {
+    "start": "node js/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ampawd/360Viewer.git"
+  },
+  "author": "Aram Gevorgyan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ampawd/360Viewer/issues"
+  },
+  "homepage": "https://github.com/ampawd/360Viewer#readme"
+}
