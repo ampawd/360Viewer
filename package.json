@@ -10,10 +10,9 @@
     "type": "git",
     "url": "git+https://github.com/ampawd/360Viewer.git"
   },
-  "author": "Aram Gevorgyan",
+  "author": "Aram Gevorgyan <aram.gevorgyan07@gmail.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/ampawd/360Viewer/issues"
-  },
-  "homepage": "https://github.com/ampawd/360Viewer#readme"
+  }
 }
